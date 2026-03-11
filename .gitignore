@@ -1,15 +1,19 @@
-# Node.js
+# Dependencies
 node_modules/
+package-lock.json
 npm-debug.log*
 
-# Environment
+# Environment variables
 .env
 .env.*
 .env.local
+.env.production
 
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
 *.pyo
 *.pyd
 .Python
@@ -29,3 +33,10 @@ build/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+.nyc_output/
