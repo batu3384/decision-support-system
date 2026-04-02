@@ -1,17 +1,22 @@
-from flask import Flask, request, jsonify
-import pymysql
+import os
+
 import numpy as np
+import pymysql
+from dotenv import load_dotenv
+from flask import Flask, jsonify, request
 from sklearn.linear_model import LinearRegression
+
+load_dotenv()
 
 app = Flask(__name__)
 
 # Veritabanı bağlantısı fonksiyonu
 def get_db_connection():
     return pymysql.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="fast_express",
+        host=os.getenv("DB_HOST", "localhost"),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", ""),
+        database=os.getenv("DB_NAME", "fast_express"),
         cursorclass=pymysql.cursors.DictCursor
     )
 
@@ -23,18 +28,21 @@ def tahmini_enflasyon():
 
     model = LinearRegression()
     model.fit(years, np.array(enflasyon_verileri).reshape(-1, 1))
-    return model.predict(np.array([[2025]]))[0][0]  # 2025 yılı tahmini enflasyon
+    forecast_year = int(os.getenv("FORECAST_YEAR", "2025"))
+    return model.predict(np.array([[forecast_year]]))[0][0]  # Tahmin yılı
 
 # Tahminleme API'si
 @app.route('/api/tahminleme', methods=['POST'])
 def tahminleme():
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         sube_ids = data.get("sube_ids")
-        percent_increase = float(data.get("percent_increase"))
+        percent_increase_raw = data.get("percent_increase")
 
-        if not sube_ids or percent_increase is None:
+        if not sube_ids or percent_increase_raw is None:
             return jsonify({"error": "Eksik parametreler"}), 400
+
+        percent_increase = float(percent_increase_raw)
 
         connection = get_db_connection()
         cursor = connection.cursor()
@@ -121,4 +129,8 @@ def tahminleme():
             connection.close()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(
+        host=os.getenv("FORECAST_HOST", "127.0.0.1"),
+        port=int(os.getenv("FORECAST_PORT", "5000")),
+        debug=os.getenv("FLASK_DEBUG", "true").lower() == "true"
+    )

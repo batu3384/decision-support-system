@@ -6,17 +6,16 @@ const path = require("path");
 const session = require("express-session");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
-const { SLR } = require("ml-regression"); // Doğru sınıfın import edilmesi
-
-
 
 const app = express();
-const port = 3000;
+const port = Number(process.env.PORT || 3000);
+const forecastApiUrl = process.env.FORECAST_API_URL || "http://127.0.0.1:5000/api/tahminleme";
+const autoHashLegacyPasswords = process.env.AUTO_HASH_LEGACY_PASSWORDS === "true";
 
 
 // Oturum Yönetimi
 app.use(session({
-  secret: "fast_express_secret_key", // Rastgele bir gizli anahtar
+  secret: process.env.SESSION_SECRET || "fast_express_dev_secret",
   resave: false, // Değişiklik olmadığında oturumu yeniden kaydetme
   saveUninitialized: false, // Başlatılmamış oturumları kaydetme
   cookie: { 
@@ -33,10 +32,10 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // MySQL Bağlantısı
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER ,
-  password: process.env.DB_PASSWORD ,
-  database: process.env.DB_NAME ,
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_NAME || "fast_express",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -69,7 +68,9 @@ async function hashExistingPasswords() {
   }
 }
 
-hashExistingPasswords();
+if (autoHashLegacyPasswords) {
+  hashExistingPasswords();
+}
 
 // Login API
 app.post("/login", async (req, res) => {
@@ -118,13 +119,6 @@ function loginRequired(req, res, next) {
   next(); // Eğer giriş yapılmışsa sonraki adıma geç
 }
 
-
-
-// Örnek: Korunan Bir Sayfa
-app.get("/index.html", loginRequired, (req, res) => {
-  res.sendFile(__dirname + "/public/index.html");
-});
-
 // Logout API
 app.post("/logout", (req, res) => {
   req.session.destroy(err => {
@@ -138,8 +132,6 @@ app.post("/logout", (req, res) => {
       res.json({ message: "Oturum kapatıldı." });
   });
 });
-
-
 app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.setHeader("Pragma", "no-cache");
@@ -185,17 +177,6 @@ app.get("/raporlama.html", loginRequired, (req, res) => {
 
 
 
-
-// Şube listesini getiren API
-app.get("/api/subeler", async (req, res) => {
-  try {
-    const [subeler] = await pool.query("SELECT sube_id, sube_adi FROM subeler");
-    res.json(subeler);
-  } catch (error) {
-    console.error("Şubeler alınırken hata oluştu:", error);
-    res.status(500).json({ error: "Şubeler alınamadı. Sunucuda bir hata oluştu." });
-  }
-});
 
 // Şube analiz API
 app.get("/api/sube_analiz", async (req, res) => {
@@ -866,13 +847,13 @@ app.get("/api/subeler", async (req, res) => {
 app.post("/api/tahminleme", async (req, res) => {
   const { sube_ids, percent_increase } = req.body;
 
-  if (!sube_ids || !percent_increase) {
+  if (!sube_ids || percent_increase === undefined || percent_increase === null) {
     return res.status(400).json({ error: "Eksik parametreler." });
   }
 
   try {
     // Python Flask API'ye POST isteği gönder
-    const response = await axios.post("http://127.0.0.1:5000/api/tahminleme", {
+    const response = await axios.post(forecastApiUrl, {
       sube_ids,
       percent_increase,
     });

@@ -1,96 +1,56 @@
-
-
 const mysql = require("mysql2/promise");
-const { faker } = require("@faker-js/faker");
-const { format, addMonths, addDays } = require("date-fns");
-
-
-
-
-
-
-
-
-// Faker Türkçe yerelleştirme
-faker.locale = "tr";
-
-
-
-
-
-
-
+require("dotenv").config();
 
 const connectionConfig = {
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "fast_express",
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_NAME || "fast_express",
 };
 
+const requiredTables = [
+  "subeler",
+  "kullanicilar",
+  "personel",
+  "kargo",
+  "kargo_tip",
+  "personel_gider",
+];
 
+async function main() {
+  let connection;
 
-
-
-
-
-
-async function veriEkle() {
   try {
-    const connection = await mysql.createConnection(connectionConfig);
+    connection = await mysql.createConnection(connectionConfig);
 
+    const [tables] = await connection.query("SHOW TABLES");
+    const tableNames = tables.map((row) => Object.values(row)[0]);
+    const missingTables = requiredTables.filter((table) => !tableNames.includes(table));
 
+    if (missingTables.length > 0) {
+      throw new Error(
+        `Eksik tablolar bulundu: ${missingTables.join(", ")}. Orijinal Fast Express SQL şemasını içe aktarın.`
+      );
+    }
 
+    console.log("Şema doğrulandı. Temel tablolar mevcut.");
 
+    for (const tableName of requiredTables) {
+      const [rows] = await connection.query(`SELECT COUNT(*) AS count FROM \`${tableName}\``);
+      console.log(`${tableName}: ${rows[0].count} kayıt`);
+    }
 
+    console.log(
+      "Not: Public repo tam şema oluşturmaz. Bu yardımcı araç, içe aktarılan course veritabanını doğrulamak için tutulur."
+    );
+  } catch (error) {
+    console.error("Veritabanı doğrulaması başarısız:", error.message);
+    process.exitCode = 1;
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
 
-
-
-    // 1. Şube ID'lerini ve bağlı İlçe ID'lerini Al
-    const [subeler] = await connection.execute("SELECT sube_id, ilce_id FROM subeler");
-    const subeIlceMap = subeler.reduce((map, row) => {
-      map[row.sube_id] = row.ilce_id;
-      return map;
-    }, {});
-
-
-
-
-
-
-
-
-    console.log("Şube ve bağlı ilçe ID'leri:", subeIlceMap);
-
-
-
-
-
-
-
-
-    // 2. Türk Müşteri Verilerini Eklemek
-    console.log("Türk müşteri verileri ekleniyor...");
-    const musteriSayisi = 300;
-    const musteriIds = [];
-
-
-
-
-
-
-
-
-    for (let i = 0; i < musteriSayisi; i++) {
-      const musteriAdi = faker.person.firstName();
-      const musteriSoyadi = faker.person.lastName();
-      const musteriTelefon = faker.phone.number("5#########");
-
-
-
-
-
-
-
-
-      // Rastgele bir şube seç ve ilgili ilçe bilgilerini al
+main();

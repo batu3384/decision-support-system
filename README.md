@@ -41,6 +41,7 @@ The opening visual above is assembled from the original report screens so the re
 - `app.py` exposes the forecasting endpoint and computes branch projections with linear regression and an inflation adjustment.
 - `public/` contains the interface layer for login, dashboards, charts, branch analysis, personnel review, comparison, forecasting, and reporting.
 - MySQL is the operational data source for branches, personnel, cargo history, and cost calculations.
+- `data-seeder.js` is preserved as a database validation helper for an already imported course schema.
 
 ## Academic context
 
@@ -100,20 +101,36 @@ The original project goal was to support middle-management decisions such as bra
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate
-   pip install flask pymysql numpy scikit-learn
+   pip install -r requirements.txt
    ```
 
-4. Start the Express app:
+4. Make sure the MySQL schema from the original course delivery is already imported into the `fast_express` database.
+
+   The public repository includes the application code and a database validation helper, but it does not reconstruct the full schema from scratch.
+
+5. Optionally verify that the imported database contains the expected core tables:
+
+   ```bash
+   npm run db:check
+   ```
+
+6. Start the Express app:
 
    ```bash
    npm start
    ```
 
-5. Start the forecasting API in a second terminal:
+7. Start the forecasting API in a second terminal:
 
    ```bash
    source .venv/bin/activate
    python app.py
+   ```
+
+8. If your database still stores plain-text legacy passwords, enable one-time password migration before the first boot:
+
+   ```bash
+   AUTO_HASH_LEGACY_PASSWORDS=true npm start
    ```
 
 The public interface labels are primarily Turkish because the project was originally delivered for a local academic setting.
