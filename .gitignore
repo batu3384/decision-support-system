@@ -8,6 +8,7 @@ npm-debug.log*
 .env.*
 .env.local
 .env.production
+!.env.example
 
 # Python
 __pycache__/

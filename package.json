@@ -1,5 +1,5 @@
 {
-  "name": "fast-express",
+  "name": "fast-express-kds",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
@@ -7,10 +7,16 @@
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "decision-support-system",
+    "cargo-operations",
+    "express",
+    "forecasting",
+    "mysql"
+  ],
+  "author": "Batuhan Yüksel",
+  "license": "MIT",
+  "description": "Decision support dashboard for Fast Express cargo operations with branch analytics, personnel review, reporting, and forecasting.",
   "dependencies": {
     "@faker-js/faker": "^9.3.0",
     "axios": "^1.7.9",
