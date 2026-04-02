@@ -1,7 +1,7 @@
 # Fast Express KDS
 
 <p align="center">
-  <img src="docs/assets/hero.svg" alt="Fast Express KDS overview" width="100%">
+  <img src="docs/assets/showcase.png" alt="Fast Express KDS showcase assembled from report screens" width="100%">
 </p>
 
 <p align="center">
@@ -14,7 +14,7 @@
 
 Fast Express KDS is a decision support workspace built for middle managers in cargo operations. It combines branch analytics, personnel scoring, cross-branch comparison, reporting, and an inflation-aware forecasting service in one browser-based flow.
 
-The repository reflects the course project described in the accompanying report, but the README is grounded in the current public codebase rather than the report wording alone.
+The opening visual above is assembled from the original report screens so the repository presents the real project surfaces instead of a generic banner.
 
 ## What the system covers
 
@@ -35,10 +35,6 @@ The repository reflects the course project described in the accompanying report,
 - `public/tahminleme.html`: branch selection plus forecast generation
 - `public/raporlama.html`: report selection and branch summaries
 
-<p align="center">
-  <img src="docs/assets/system-map.svg" alt="Fast Express KDS system map" width="100%">
-</p>
-
 ## Architecture
 
 - `app.js` runs the main Express application, session management, MySQL queries, dashboard APIs, and protected routes.
@@ -50,8 +46,8 @@ The repository reflects the course project described in the accompanying report,
 
 - Course: `YBS 3015 Karar Destek Sistemleri`
 - Project title: `Fast Express Kargo KDS`
+- Project window: `Oct 2024 - Dec 2024`
 - Student: `Batuhan Yüksel`
-- Delivery year: `2024`
 
 The original project goal was to support middle-management decisions such as branch performance review, profitability tracking, and branch opening or closure evaluation through data-backed views instead of manual interpretation.
 
